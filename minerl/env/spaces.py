@@ -61,6 +61,33 @@ class Enum(gym.spaces.Discrete):
         return len(self.values)
 
 
+class OneHotEnum(gym.spaces.MultiDiscrete):
+    def __init__(self, *values: str):
+        super().__init__([2]*len(values))
+        self.values = values
+
+    def no_op(self) -> int:
+        return np.zeros(len(self.values))
+
+    def sample(self):
+        print(self.np_random.randint(len(self.values)))
+        return self[self.np_random.randint(len(self.values))]
+
+    def __getitem__(self, action):
+        try:
+            if isinstance(action, str):
+                enum_idx = self.values.index(action)
+            else:
+                enum_idx = action
+            out = np.zeros(len(self.values), dtype=self.dtype)
+            out[enum_idx] = 1
+            return out
+        except ValueError:
+            raise ValueError(f"{action} is not a valid enum key")
+
+    def __str__(self):
+        return f"OneHotEnum({','.join(self.values)})"
+
 class Box(gym.spaces.Box):
     def no_op(self):
         return np.zeros(shape=self.shape).astype(self.dtype)
